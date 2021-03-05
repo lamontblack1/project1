@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>misc word test</title>
+</head>
+<body>
+    <input id="myString" type="text" class="form-control" placeholder="Enter your screen name to begin" aria-label="screenname" aria-describedby="btnStart">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary" type="button" id="btnStart" onclick="myFunction()">Go!</button>
+                            </div>
+
+
+    <script type="text/javascript">
+        function myFunction() {
+            document.write(getMiscWord(document.getElementById("myString").value))
+        }
+
+        function getMiscWord(str) {
+            //clean string up and turn into an array
+            str = str.toLowerCase()
+            str = removePunctuation(str)
+            let wordsAry = str.split(" ");
+            
+            //get rid of words 1 and 2 letter words
+            for (let i = wordsAry.length-1; i > -1 ; i--) {
+                const element = wordsAry[i];
+                    if (element.length < 3) {wordsAry.splice(i,1)}
+            }
+            //if wordsAry.length !== 0 ...then send word "what"
+            //make and trim string to send to api
+            let newStr = ""
+            for (let i = 0; i < wordsAry.length; i++) {
+                const element = wordsAry[i];
+                newStr = newStr + element + " "
+            }
+            newStr = newStr.trim()
+            if (newStr !== "") {
+                //return string
+            }
+            else {
+                //return array ["what", "you know what i mean]
+            }
+            
+            // this is where you send the array or string to api to get the parts of speech.
+            
+            //get random number and random word
+            let rnd = Math.floor(Math.random() * wordsAry.length); 
+            // console.log(rnd)
+            return wordsAry[rnd]
+        }
+        
+        var punctuation = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~';
+
+        function removePunctuation(string) {
+            return string
+                .split('')
+                .filter(function(letter) {
+                return punctuation.indexOf(letter) === -1;
+                })
+                .join('');
+        }
+    </script>
+</body>
+</html>
