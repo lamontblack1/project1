@@ -1,42 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Five Minute Run Chat</title>
-    
-    <link rel="stylesheet" href="./assets/css/reset.css">
-     <!-- Bootstrap CDN-->
-     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
-     <!-- jQuery -->
-     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-     <!-- Firebase Core JavaScript Link -->
-     <script src="https://www.gstatic.com/firebasejs/8.2.9/firebase-app.js"></script>
-     <!-- Specific Firebase products we want (Database) -->
-     <script src="https://www.gstatic.com/firebasejs/8.2.9/firebase-database.js"></script>
-     <!-- moment.js CDN -->
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-    <!-- Google fonts -->
-    <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue&family=Indie+Flower&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="./assets/css/style.css">
-
-</head>
-<body>
-    <header><h1>Five-Minute Run Chat</h1></header>
-
-    <div class="container mt-2">
+ <div id="smallerDeviceDiv" class="container mt-2">
         <div id="userInfoDiv" class="row">
             <div class="col-md-3"></div>
             <div class="col-md-6 text-center"> 
                 <form>
                     <div id="nameStartDiv" class="form-group">
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Enter your screen name to get started" aria-label="screenname" aria-describedby="btnStart">
+                            <input type="text" class="form-control" placeholder="Enter your screen name to begin" aria-label="screenname" aria-describedby="btnStart">
                             <div class="input-group-append">
-                                <button class="btn btn-outline-secondary" type="button" id="btnStart" onclick="myFunction()">Start Chatting!</button>
+                                <button class="btn btn-outline-secondary" type="button" id="btnStart" onclick="myFunction()">Go!</button>
                             </div>
 
                         </div>
@@ -67,8 +38,8 @@
         <div class="row">
             <div id="messagesBox" class="col-12">
 
-                <div class='row mt-3'><div class='col-5'></div>
-                    <div class='col-7'>
+                <div class='row mt-3'><div class='col-1'></div>
+                    <div class='col-11'>
                         <div class="card my-message-card">
                             <div class="row no-gutters">
                                 <div class="col-md-3">
@@ -76,7 +47,7 @@
                                 </div>
                                 <div class="col-md-9">
                                     <div class="card-body p-2">
-                                        <p class="card-title m-0">Card title</p>
+                                        <!-- <p class="card-title m-0">Card title</p> -->
                                         <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
                                         <!-- <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p> -->
                                     </div>
@@ -87,20 +58,20 @@
                 </div>
 
                 <div class='row mt-3'>
-                    <div class='col-7'>
+                    <div class='col-11'>
                         <div class="card their-message-card">
                             <div class="row no-gutters">
+                                <div class="col-md-1">
+                                    <img class="their-img" src="./assets/dog.gif" alt="...">
+                                </div>
                                 <div class="col-md-9">
                                     <div class="card-body p-2">
-                                        <p class="card-title m-0">Card title</p>
+                                        <!-- <p class="card-title m-0">Card title</p> -->
                                         <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
                                         <!-- <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p> -->
                                     </div>
                                 </div>
                                 
-                                <div class="col-md-3">
-                                    <img class="their-img" src="./assets/dog.gif" alt="...">
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -111,25 +82,4 @@
 
             </div>
         </div>
-       
-
-
-
-
-
-
     </div>
-
-
-    <footer>&copy lblack</footer>
-
-    <!-- <script src="./assets/javascript/app.js"></script> -->
-    <script>
-        function myFunction() {
-            $("#userInfoDiv").attr("style","display: none;")
-            $("#chattersActionDiv").attr("class","row")
-            $("#myHr").attr("class", "mt-0 mb-0")
-        }
-    </script>
-</body>
-</html>
