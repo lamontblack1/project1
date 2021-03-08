@@ -34,9 +34,9 @@
                 <form>
                     <div id="nameStartDiv" class="form-group">
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Enter your screen name to get started" aria-label="screenname" aria-describedby="btnStart">
+                            <input type="text" class="form-control" id="nameInput" placeholder="Enter your screen name to get started" aria-label="screenname" aria-describedby="btnStart">
                             <div class="input-group-append">
-                                <button class="btn btn-outline-secondary" type="button" id="btnStart" onclick="myFunction()">Start Chatting!</button>
+                                <button class="btn btn-outline-secondary" type="button" id="btnStart">Start Chatting!</button>
                             </div>
 
                         </div>
@@ -47,7 +47,9 @@
         </div>
 
         <div class="row invisible" id="chattersActionDiv">
-            <div id="chattersInfoDiv" class="col-md-3"></div>
+            <div id="chattersInfoDiv" class="col-md-3">
+                <h2 id="chattersInfoLine"></h2>
+            </div>
             <div class="col-md-6 text-center"> 
                 <form>
                     <div id="sendMessageDiv" class="form-group">
@@ -123,13 +125,8 @@
 
     <footer>&copy lblack</footer>
 
-    <!-- <script src="./assets/javascript/app.js"></script> -->
-    <script>
-        function myFunction() {
-            $("#userInfoDiv").attr("style","display: none;")
-            $("#chattersActionDiv").attr("class","row")
-            $("#myHr").attr("class", "mt-0 mb-0")
-        }
-    </script>
+  
+    <script src="./assets/javascript/app.js"></script>
+    
 </body>
 </html>

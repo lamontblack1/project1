@@ -20,44 +20,143 @@ var firebaseConfig = {
 
     let myThreadId = ""
     let myScreenName = ""
+    let myUserId = Math.floor(Math.random() * 100000);
     let otherParticipantName = ""
-
     
+        // db.ref("/Chatrooms/" + myThreadId).on("value", function(snap) {
+        //   console.log(myThreadId)
+        //   console.log("this chatroom value event: " + snap.key)
+        //   //If both logged on and one instance does not have the others screen name provide that and start
+         
+        // });
+
+    db.ref("/Chatrooms").on("child_changed", function(snap,snapKey) {
+      console.log(snap.val())
+      if (((snap.val().participant1UserId) == myUserId) || ((snap.val().participant2UserId) == myUserId)) {
+            if (((snap.val().participant1) !== "") && ((snap.val().participant2) !=="")) {
+              console.log("chatroom child changed event")
+              console.log(snap.val().participant1)
+              console.log(snap.val().participant2)
+
+                if (myScreenName === (snap.val().participant1)) {
+                  otherParticipantName = snap.val().participant2
+                }
+                else if (myScreenName === (snap.val().participant2)) {
+                  otherParticipantName = snap.val().participant1
+                }
+                let displayOtherParticipantTxt = "Your Five-Minute Chat buddy is " + otherParticipantName
+                // console.log(displayOtherParticipantTxt)
+                $("#chattersInfoLine").text(displayOtherParticipantTxt)
+
+                  let newMessageObj = {
+                    participantName: "Five-Minute Chat",
+                    message: "Start chatting!",
+                    messageTime: firebase.database.ServerValue.TIMESTAMP,
+                    gifUrl: "./assets/dog.gif",
+                    chatroomId: myUserId
+                  }
+              db.ref("/messages").push(newMessageObj)
+            }
+      } 
+    });
+
     db.ref("/Chatrooms").on("child_added", function(snap) {
+      // console.log(snap.val())
       if (snap.val()) {
-        console.log("thread " + myThreadId)
+        // console.log("thread " + myThreadId)
+        let intParticipants = parseInt(snap.val().participants);
         if (myThreadId === "") {
-          console.log(snap.key)
-          let intParticipants = parseInt(snap.val().participants);
-          console.log("part: " + intParticipants)
+          // console.log(snap.key)
+          console.log("how many room part: " + intParticipants)
           //If this "room" has only one participant then make this my room, ergo my thread id
           if (intParticipants === 1) {
-            otherParticipantName = snap.val().participant1
             myThreadId = snap.key
-            let newChatRoomObj = {
-              participants: 2,
-              participant1: otherParticipantName,
-              participant2: ""
+            db.ref("/Chatrooms/" + myThreadId).update({participants: 2})
+            //handle the child added event if this instance is the 1 participant and has logged in name
+            // if ((snap.val().participant1) === myScreenName) {
+            //   myThreadId = snap.key
+            // }
+            //but if 
+            if ((snap.val().participant1) !== "") {
+                otherParticipantName = snap.val().participant1
+                let displayOtherParticipantTxt = "Your Five-Minute Chat buddy is " + otherParticipantName
+                // console.log(displayOtherParticipantTxt)
+                $("#chattersInfoLine").text(displayOtherParticipantTxt)
+                //don't think I need htis
+                // let chatRoomObj = {
+                //   participants: 2,
+                //   participant1: snap.val().participant1,
+                //   participant2: myScreenName
+                // }
+                // db.ref("/Chatrooms/"+ snap.key).set(chatRoomObj)
+
             }
-            let displayOtherParticipant = "Your Five-Minute Chat buddy is " + otherParticipantName
-            console.log(displayOtherParticipant)
-            db.ref("/Chatrooms/"+ snap.key).set(newChatRoomObj)
-            let newMessageObj = {
-              participantName: "Five-Minute Chat",
-              message: "Both participants are almost ready",
-              messageTime: firebase.database.ServerValue.TIMESTAMP
-            }
-            db.ref("/Chatrooms/"+ snap.key + "/messages").push(newMessageObj)
-            // db.ref("/Chatrooms/" + myThreadId).update({participants: 2})
           }
         }
+        // if 2 in chatroom but still waiting for complete information...
+       
+        if ((intParticipants === 2) && (myThreadId === snap.key) && (otherParticipantName === "")) {
+          //If both in chatroom but one hasnt logged name yet..
+          if (((snap.val().participant1) === "") || ((snap.val().participant2) ==="")) {
+              let newMessageObj = {
+                participantName: "Five-Minute Chat",
+                message: "Both participants are almost ready",
+                messageTime: firebase.database.ServerValue.TIMESTAMP,
+                gifUrl: "./assets/dog.gif",
+                chatroomId: myUserId
+              }
+            db.ref("/messages").push(newMessageObj)
+            // db.ref("/Chatrooms/" + myThreadId).update({participants: 2})
+
+          }
+          
+        }
       }
+
     });
 
     //my room (mythreadid) messages
-    db.ref("/Chatrooms/"+ snap.key + "/messages").on("child_added", function(snap) {
+    db.ref("/messages").on("child_added", function(snap) {
+      if (myThreadId !== "") {
+        let dbChatroomId = snap.val().chatroomId
+          // only use it if it is a message from our chatroom, since all messages are together
+          if (myThreadId === dbChatroomId) {
+            let strSenderName = snap.val().participantName
+            let strMessage = snap.val().message
+            let strUrl = snap.val().gifUrl
+            let dateVal = snapshot.val().messageTime
+            let msgTimeStamp = moment(dateVal).format("hh:mma")
 
-    })
+            //if it is my message, put on right, their message, put on left
+            if (strSenderName == myScreenName) {
+              $("#messagesBox").prepend(
+                "<div class='row mt-3'><div class='col-5'></div>" +
+                "<div class='col-7'>" +
+                    "<div class='card my-message-card'>" +
+                        "<div class='row no-gutters'>" +
+                            "<div class='col-md-3'>" +
+                            "<img src='" + strUrl + "' alt=''>" +
+                            "</div>" +
+                                "<div class='col-md-9'>" +
+                                    "<div class='card-body p-2'>" +
+                                        "<p class='card-title m-0'>" + strSenderName + "  <small class='text-muted'>" + msgTimeStamp + "</small></p>" +
+                                        "<p class='card-text'>" + strMessage + "</p>" +
+                                        "</div>" +
+                                "</div>" +
+                            "</div>" +
+                        "</div>" +
+                    "</div>" +
+                "</div>"
+              )
+            }
+            else {}
+
+          }
+      }
+    });
+    // db.ref("/Chatrooms/"+ myThreadId + "/messages").on("child_added", function(snap) {
+    //   console.log(snap.val())
+    // });
 
     connectedParticipants.on("value", function(snap) {
       // If they are connected..
@@ -78,7 +177,7 @@ var firebaseConfig = {
     connectionsListRef.on("value", function(snap) {
       //update the number of connections
       intConnections = snap.numChildren()
-      console.log("connections: " + intConnections)
+      // console.log("connections: " + intConnections)
     });
 
   //giphy.com api setup*********************************************************8
@@ -117,7 +216,7 @@ var firebaseConfig = {
     };
 
 
-  //wordio api setup ***********************************************************
+  //word api setup ***********************************************************
 
 
 
@@ -125,41 +224,66 @@ var firebaseConfig = {
 
   //local Events ******************************************************
   $("#btnStart").on("click", function(event) {
-    if (myScreenName !== "") {
-      myScreenName = $("#nameInput").val()
+    console.log(myScreenName)
+      if ((myScreenName === "") && (($("#nameInput").val()) !== "")) {
+        myScreenName = $("#nameInput").val().trim()
+        
+        console.log(myScreenName)
+        console.log("start button click thread id: " + myThreadId)
+            if (myThreadId === "") {
+              let newChatRoomObj = {
+                participants: 1,
+                participant1UserId: myUserId,
+                participant1: myScreenName,
+                participant2: "",
+                participant2UserId: ""
+              };
+              myThreadId = db.ref().child("Chatrooms").push().key
+              console.log("new room started, key is: " + myThreadId)
+              var updates = {};
+              updates['/Chatrooms/' + myThreadId] = newChatRoomObj;
+              db.ref().update(updates)
 
-      if (myThreadId === "") {
-        let newChatRoomObj = {
-          participants: 1,
-          participant1: myScreenName,
-          participant2: ""
-        }
-        let con = db.ref("/Chatrooms").push(newChatRoomObj)
-        myThreadId = con.key
-        console.log("new room started, key is: " + myThreadId)
-        //UNDONE alert user waiting for other person to log on
+              let newMessageObj = {
+                participantName: "Five-Minute Chat",
+                message: "Both participants are almost ready",
+                messageTime: firebase.database.ServerValue.TIMESTAMP,
+                gifUrl: "./assets/dog.gif",
+                chatroomId: myUserId
+              }
+            db.ref("/messages").push(newMessageObj)
+              //UNDONE alert user waiting for other person to log on
+              $("#chattersInfoLine").text("Waiting for your chat buddy to log on")
+            }
+            else {
+              db.ref("/Chatrooms/" + myThreadId).update({
+                participant2: myScreenName,
+                participant2UserId: myUserId
+              });
+            }
+      
+        // database.child("users").child(userId).get().then(function(snapshot) {
+        //   if (snapshot.exists()) {
+        //     console.log(snapshot.val());
+        //   }
+        //   else {
+        //     console.log("No data available");
+        //   }
+        // }).catch(function(error) {
+        //   console.error(error);
+        // });
+
+
+        $("#userInfoDiv").empty()
+        $("#userInfoDiv").attr("style","display: none;")
+        $("#chattersActionDiv").attr("class","row visible")
+        $("#myHr").attr("class", "mt-0 mb-0")
+
+        //START TIMER
+
       }
       else {
-        db.ref("/Chatrooms/" + myThreadId).update({participant2: myScreenName})
+        //alert usert that the input field was left blank
       }
-     
-      // database.child("users").child(userId).get().then(function(snapshot) {
-      //   if (snapshot.exists()) {
-      //     console.log(snapshot.val());
-      //   }
-      //   else {
-      //     console.log("No data available");
-      //   }
-      // }).catch(function(error) {
-      //   console.error(error);
-      // });
-
-
-      $("#nameStartDiv").empty()
-
-    }
-    else {
-      //alert usert that the input field was left blank
-    }
-  })
+  });
 
