@@ -22,21 +22,25 @@ var firebaseConfig = {
     let myScreenName = ""
     let myUserId = Math.floor(Math.random() * 100000);
     let otherParticipantName = ""
+    let secondsLeft = 300
+    //  Variable that will hold our interval ID when we execute
+    //  the "run" function
+    var intervalId;
+    let timerStarted = false
+    let startChatting = false
     
         // db.ref("/Chatrooms/" + myThreadId).on("value", function(snap) {
         //   console.log(myThreadId)
         //   console.log("this chatroom value event: " + snap.key)
-        //   //If both logged on and one instance does not have the others screen name provide that and start
-         
         // });
 
     db.ref("/Chatrooms").on("child_changed", function(snap,snapKey) {
-      console.log(snap.val())
+      // console.log(snap.val())
       if (((snap.val().participant1UserId) == myUserId) || ((snap.val().participant2UserId) == myUserId)) {
             if (((snap.val().participant1) !== "") && ((snap.val().participant2) !=="")) {
-              console.log("chatroom child changed event")
-              console.log(snap.val().participant1)
-              console.log(snap.val().participant2)
+              // console.log("chatroom child changed event")
+              // console.log(snap.val().participant1)
+              // console.log(snap.val().participant2)
 
                 if (myScreenName === (snap.val().participant1)) {
                   otherParticipantName = snap.val().participant2
@@ -47,15 +51,22 @@ var firebaseConfig = {
                 let displayOtherParticipantTxt = "Your Five-Minute Chat buddy is " + otherParticipantName
                 // console.log(displayOtherParticipantTxt)
                 $("#chattersInfoLine").text(displayOtherParticipantTxt)
-
+                if (!startChatting) {
+                  startChatting = true
                   let newMessageObj = {
                     participantName: "Five-Minute Chat",
                     message: "Start chatting!",
                     messageTime: firebase.database.ServerValue.TIMESTAMP,
                     gifUrl: "./assets/dog.gif",
-                    chatroomId: myUserId
+                    chatroomId: myThreadId,
+                    searchWord: ""
                   }
-              db.ref("/messages").push(newMessageObj)
+                  db.ref("/messages").push(newMessageObj)
+                }
+              if (!timerStarted) {
+                run()
+                timerStarted = true
+              }
             }
       } 
     });
@@ -103,7 +114,8 @@ var firebaseConfig = {
                 message: "Both participants are almost ready",
                 messageTime: firebase.database.ServerValue.TIMESTAMP,
                 gifUrl: "./assets/dog.gif",
-                chatroomId: myUserId
+                chatroomId: myThreadId,
+                searchWord: ""
               }
             db.ref("/messages").push(newMessageObj)
             // db.ref("/Chatrooms/" + myThreadId).update({participants: 2})
@@ -117,6 +129,7 @@ var firebaseConfig = {
 
     //my room (mythreadid) messages
     db.ref("/messages").on("child_added", function(snap) {
+      // console.log(snap.val())
       if (myThreadId !== "") {
         let dbChatroomId = snap.val().chatroomId
           // only use it if it is a message from our chatroom, since all messages are together
@@ -124,8 +137,20 @@ var firebaseConfig = {
             let strSenderName = snap.val().participantName
             let strMessage = snap.val().message
             let strUrl = snap.val().gifUrl
-            let dateVal = snapshot.val().messageTime
+            let dateVal = snap.val().messageTime
             let msgTimeStamp = moment(dateVal).format("hh:mma")
+            let strTopic = snap.val().searchWord
+             //slice message so you can isolate word used for gif
+             let strMessageToDisplay = strMessage
+             if (strTopic !== "") {
+                let i = strMessage.indexOf(strTopic)
+                if (i > 0) {
+                  leftMessage = strMessage.slice(0, i)
+                  let rightMessage = strMessage.slice(i + strTopic.length + 1, 2000)
+                  strMessageToDisplay = leftMessage + " <b>" + strTopic.toUpperCase() + " </b>" + rightMessage  
+                }
+             }
+
 
             //if it is my message, put on right, their message, put on left
             if (strSenderName == myScreenName) {
@@ -140,7 +165,7 @@ var firebaseConfig = {
                                 "<div class='col-md-9'>" +
                                     "<div class='card-body p-2'>" +
                                         "<p class='card-title m-0'>" + strSenderName + "  <small class='text-muted'>" + msgTimeStamp + "</small></p>" +
-                                        "<p class='card-text'>" + strMessage + "</p>" +
+                                        "<p class='card-text'>" + strMessageToDisplay + "</p>" +
                                         "</div>" +
                                 "</div>" +
                             "</div>" +
@@ -149,7 +174,28 @@ var firebaseConfig = {
                 "</div>"
               )
             }
-            else {}
+            else {
+              $("#messagesBox").prepend(
+                "<div class='row mt-3'>" +
+                    "<div class='col-7'>" +
+                        "<div class='card their-message-card'>" +
+                            "<div class='row no-gutters'>" +
+                                "<div class='col-md-9'>" +
+                                    "<div class='card-body p-2'>" +
+                                        "<p class='card-title m-0'>" + strSenderName + "  <small class='text-muted'>" + msgTimeStamp + "</small></p>" +
+                                        "<p class='card-text'>" + strMessageToDisplay + "</p>" +
+                                    "</div>" +
+                                "</div>" +
+                                "<div class='col-md-3'>" +
+                                    "<img src='" + strUrl + "' alt=''>" +
+                                "</div>" +
+                            "</div>" +
+                        "</div>" +
+                    "</div>" +
+                    "<div class='col-5'></div>" +
+                "</div>"
+              )            
+            }
 
           }
       }
@@ -182,8 +228,8 @@ var firebaseConfig = {
 
   //giphy.com api setup*********************************************************8
 
-  function getGif(strTopic, placeholder) {
-    
+  function getGifSendMessage(strTopic, strMessage) {
+    let placeholder = Math.floor(Math.random() * 100) + 1
     var queryURL = "https://api.giphy.com/v1/gifs/search?api_key=dSe8JxZC5c32HRcUeWDIT7n5R8PYUmTF&q="+ 
       strTopic +"&rating=g&limit=1&offset=" + (placeholder);
     
@@ -192,67 +238,88 @@ var firebaseConfig = {
         method: "GET"
     }).then(function(response) {
           console.log(response)
-          //   console.log(response.data.length);
+            console.log(response.data.length);
           let ary = response.data
-        
-          for (let i = 0; i < ary.length; i++) {
-              const element = ary[i];
-                  
-                  let gifUrl = element.images.downsized_medium.url     // add gif url as id to animate it later
-                  // cardDiv.html("<img id='" + gifUrl + "' src='" + imageUrl + "' class='card-img-top'>")
-                  // let cardBodyDiv = $("<div class='card-body p-0'>")
-                  // let cardText = $("<p class='text-center my-1'><b>" + element.title + "</b></p><p class='text-center my-0'>Rating: " + element.rating + "</p>")
-                  // cardBodyDiv.append(cardText)
-                  // let likeButton = $("<button class='btn btn-info btn-sm like my-1'><span class='fa fa-heart' aria-hidden='true'></span></button>")
-                  // likeButton.attr("data-title", element.title)
-                  // likeButton.attr("data-url",element.images.downsized_medium.url)
-                  // cardBodyDiv.append(likeButton)
-                  // // cardDiv.append(imgHolder)
-                  // cardDiv.append(cardBodyDiv)
-                  // let gifDiv = $("#" + columnId)
-                  // gifDiv.append(cardDiv)
-          }
+              const element = ary[0];
+              console.log(ary[0])
+              let strUrl = element.images.downsized_medium.url  
+
+              let newMessageObj = {
+                participantName: myScreenName,
+                message: strMessage,
+                messageTime: firebase.database.ServerValue.TIMESTAMP,
+                gifUrl: strUrl,
+                chatroomId: myThreadId,
+                searchWord: strTopic
+              }
+            db.ref("/messages").push(newMessageObj)
         });
     };
 
 
-  //word api setup ***********************************************************
+    
+    
+    
+    //Timers **********************************************************************
 
+    function run() {
+      clearInterval(intervalId);
+      intervalId = setInterval(decrement, 1000);
+    }
 
+    //  The decrement function.
+    function decrement() {
 
-  //Timers **********************************************************************
+      //  Decrease number by one.
+      secondsLeft--;
+        if (secondsLeft < 61) {
+          $("#timerInfoLine").text(secondsLeft + " seconds left to chat!")
+        }
+      //  Once number hits zero...
+      if (secondsLeft === 0) {
+        //  ...run the stop function.
+        stop();
 
+        //  Alert the user that time is up.
+        location.reload()
+      }
+    }
+
+    function stop() {
+      clearInterval(intervalId);
+    }
+    
   //local Events ******************************************************
   $("#btnStart").on("click", function(event) {
     console.log(myScreenName)
-      if ((myScreenName === "") && (($("#nameInput").val()) !== "")) {
-        myScreenName = $("#nameInput").val().trim()
-        
-        console.log(myScreenName)
-        console.log("start button click thread id: " + myThreadId)
-            if (myThreadId === "") {
-              let newChatRoomObj = {
-                participants: 1,
-                participant1UserId: myUserId,
-                participant1: myScreenName,
-                participant2: "",
-                participant2UserId: ""
-              };
-              myThreadId = db.ref().child("Chatrooms").push().key
+    if ((myScreenName === "") && (($("#nameInput").val()) !== "")) {
+      myScreenName = $("#nameInput").val().trim()
+      
+      console.log(myScreenName)
+      console.log("start button click thread id: " + myThreadId)
+      if (myThreadId === "") {
+        let newChatRoomObj = {
+          participants: 1,
+          participant1UserId: myUserId,
+          participant1: myScreenName,
+          participant2: "",
+          participant2UserId: ""
+        };
+        myThreadId = db.ref().child("Chatrooms").push().key
               console.log("new room started, key is: " + myThreadId)
               var updates = {};
               updates['/Chatrooms/' + myThreadId] = newChatRoomObj;
               db.ref().update(updates)
-
-              let newMessageObj = {
-                participantName: "Five-Minute Chat",
-                message: "Both participants are almost ready",
-                messageTime: firebase.database.ServerValue.TIMESTAMP,
-                gifUrl: "./assets/dog.gif",
-                chatroomId: myUserId
-              }
-            db.ref("/messages").push(newMessageObj)
-              //UNDONE alert user waiting for other person to log on
+              
+            //   let newMessageObj = {
+            //     participantName: "Five-Minute Chat",
+            //     message: "Both participants are almost ready",
+            //     messageTime: firebase.database.ServerValue.TIMESTAMP,
+            //     gifUrl: "./assets/dog.gif",
+            //     chatroomId: myThreadId
+            //   }
+            // db.ref("/messages").push(newMessageObj)
+            //UNDONE alert user waiting for other person to log on
               $("#chattersInfoLine").text("Waiting for your chat buddy to log on")
             }
             else {
@@ -261,29 +328,129 @@ var firebaseConfig = {
                 participant2UserId: myUserId
               });
             }
-      
+            
         // database.child("users").child(userId).get().then(function(snapshot) {
-        //   if (snapshot.exists()) {
-        //     console.log(snapshot.val());
-        //   }
-        //   else {
-        //     console.log("No data available");
-        //   }
-        // }).catch(function(error) {
-        //   console.error(error);
-        // });
+          //   if (snapshot.exists()) {
+            //     console.log(snapshot.val());
+            //   }
+            //   else {
+              //     console.log("No data available");
+              //   }
+              // }).catch(function(error) {
+                //   console.error(error);
+                // });
+                
+                
+                $("#userInfoDiv").empty()
+                $("#userInfoDiv").attr("style","display: none;")
+                $("#chattersActionDiv").attr("class","row visible")
+                $("#myHr").attr("class", "mt-0 mb-0")
+                
+              }
+              else {
+                //alert usert that the input field was left blank
+              }
+  });
+            
+  $("#btnSend").on("click", function(event) {
+      //CHECK TO MAKE SURE IT IS NOT EMPTY
+      if (($("#messageInput").val() !== "")) {
+        let myMessage = $("#messageInput").val()
+        let keyWordArray = getKeyWordArray(myMessage);
+          //shuffle the array to randomize it, because need to loop through in case first chosen word is not appropriate
+          keyWordArray = shuffleArray(keyWordArray)
+          //FIX word API LATER, FOR TIME BEING, CHOOSE FIRST WORD OF SHUFFLED ARRAY
+          // let wordToUse = chooseKeyWord(keyWordArray)
+          let wordToUse = keyWordArray[0]
+          console.log("word to use " + wordToUse)
+          //RESET MESSAGE INPUT
+          $("#messageInput").val("")
 
-
-        $("#userInfoDiv").empty()
-        $("#userInfoDiv").attr("style","display: none;")
-        $("#chattersActionDiv").attr("class","row visible")
-        $("#myHr").attr("class", "mt-0 mb-0")
-
-        //START TIMER
-
-      }
-      else {
-        //alert usert that the input field was left blank
+          // call function which will do fetch, wait for response, then push message
+          getGifSendMessage(wordToUse,myMessage)
       }
   });
+  
+  //word api setup ***********************************************************
 
+  function chooseKeyWord(ary) {
+    for (let i = 0; i < ary.length; i++) {
+        const element = ary[i];
+        let isKeyWord = getPos(element)
+        console.log("is the keyword good?  " + isKeyWord)
+        if (isKeyWord) {
+            console.log("should end here")
+            return element
+        }
+    }
+    //if nothing was returned
+    let altArray = ["what", "you know what i mean", "dont know", "funny"]
+    let rnd = Math.floor(Math.random() * altArray.length);
+    return altArray[rnd]
+}
+
+function getKeyWordArray(str) {
+    //clean string up and turn into an array
+    str = str.toLowerCase()
+    str = removePunctuation(str)
+    let wordsAry = str.split(" ");
+    
+    //get rid of words 1 and 2 letter words
+    for (let i = wordsAry.length-1; i > -1 ; i--) {
+        const element = wordsAry[i];
+            if (element.length < 3) {wordsAry.splice(i,1)}
+    }
+
+    if ((wordsAry.length) > 0) {
+        return wordsAry
+    }
+    else {
+        let altArray = ["what", "you know what i mean", "dont know", "funny"]
+        return altArray
+    }
+}
+
+
+// return true or false if it is an appropriate key word
+function getPos(str) {
+    var queryURL = "https://www.dictionaryapi.com/api/v3/references/sd4/json/" + str +"?key=ad5c6350-dd95-47d6-adbf-12ce92ca73ce";
+    let isGood = false
+    
+    $.ajax({
+        url: queryURL,
+        method: "GET"
+    }).then(function(response) {
+        console.log(response.length);
+        let len = response.length
+        for (let i = 0; i < response.length; i++) {
+            const element = response[i].fl;
+            console.log(element)
+            if ((element === "verb") || (element === "noun") || (element === "adjective")) {
+                isGood = true
+                console.log(isGood)
+            }
+            
+        }
+    });
+    console.log("going to return" + isGood)
+    return isGood
+};
+
+var punctuation = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~';
+
+function removePunctuation(string) {
+    return string
+        .split('')
+        .filter(function(letter) {
+        return punctuation.indexOf(letter) === -1;
+        })
+        .join('');
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array
+}
