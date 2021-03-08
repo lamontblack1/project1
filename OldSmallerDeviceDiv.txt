@@ -1,0 +1,85 @@
+ <div id="smallerDeviceDiv" class="container mt-2">
+        <div id="userInfoDiv" class="row">
+            <div class="col-md-3"></div>
+            <div class="col-md-6 text-center"> 
+                <form>
+                    <div id="nameStartDiv" class="form-group">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Enter your screen name to begin" aria-label="screenname" aria-describedby="btnStart">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary" type="button" id="btnStart" onclick="myFunction()">Go!</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-md-3"></div>
+        </div>
+
+        <div class="row invisible" id="chattersActionDiv">
+            <div id="chattersInfoDiv" class="col-md-3"></div>
+            <div class="col-md-6 text-center"> 
+                <form>
+                    <div id="sendMessageDiv" class="form-group">
+                        <div class="input-group">
+                            <textarea id="messageInput" class="form-control" placeholder="Your message" rows="2" aria-label="Your message" aria-describedby="btnSend"></textarea>
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary font-weight-bold" type="button" id="btnSend">S e n d</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div id="timerInfoDiv" class="col-md-3"></div>
+        </div>
+        <hr id="myHr" class="invisible">
+       
+        <div class="row">
+            <div id="messagesBox" class="col-12">
+
+                <div class='row mt-3'><div class='col-1'></div>
+                    <div class='col-11'>
+                        <div class="card my-message-card">
+                            <div class="row no-gutters">
+                                <div class="col-md-3">
+                                    <img src="./assets/dog.gif" alt="...">
+                                </div>
+                                <div class="col-md-9">
+                                    <div class="card-body p-2">
+                                        <!-- <p class="card-title m-0">Card title</p> -->
+                                        <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+                                        <!-- <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p> -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class='row mt-3'>
+                    <div class='col-11'>
+                        <div class="card their-message-card">
+                            <div class="row no-gutters">
+                                <div class="col-md-1">
+                                    <img class="their-img" src="./assets/dog.gif" alt="...">
+                                </div>
+                                <div class="col-md-9">
+                                    <div class="card-body p-2">
+                                        <!-- <p class="card-title m-0">Card title</p> -->
+                                        <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+                                        <!-- <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p> -->
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                    <div class='col-5'></div>
+                </div>
+
+
+
+            </div>
+        </div>
+    </div>

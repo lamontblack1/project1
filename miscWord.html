@@ -5,6 +5,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>misc word test</title>
+     <!-- jQuery -->
+     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body>
     <input id="myString" type="text" class="form-control" placeholder="Enter your screen name to begin" aria-label="screenname" aria-describedby="btnStart">
@@ -15,10 +17,37 @@
 
     <script type="text/javascript">
         function myFunction() {
-            document.write(getMiscWord(document.getElementById("myString").value))
+            //get the value of the message input
+            //CHECK TO MAKE SURE IT IS NOT EMPTY
+            let myMessage = document.getElementById("myString").value;
+            let keyWordArray = getKeyWordArray(myMessage);
+            //shuffle the array to randomize it, because need to loop through in case first chosen word is not appropriate
+            keyWordArray = shuffleArray(keyWordArray)
+            console.log(keyWordArray)
+            //FIX API LATER, FOR TIME BEING, CHOOSE FIRST WORD OF SHUFFLED ARRAY
+            // let wordToUse = chooseKeyWord(keyWordArray)
+            let wordToUse = keyWordArray[0]
+            console.log("word to use " + wordToUse)
+            //RESET MESSAGE INPUT
         }
 
-        function getMiscWord(str) {
+        function chooseKeyWord(ary) {
+            for (let i = 0; i < ary.length; i++) {
+                const element = ary[i];
+                let isKeyWord = getPos(element)
+                console.log("is the keyword good?  " + isKeyWord)
+                if (isKeyWord) {
+                    console.log("should end here")
+                    return element
+                }
+            }
+            //if nothing was returned
+            let altArray = ["what", "you know what i mean", "dont know", "funny"]
+            let rnd = Math.floor(Math.random() * altArray.length);
+            return altArray[rnd]
+        }
+
+        function getKeyWordArray(str) {
             //clean string up and turn into an array
             str = str.toLowerCase()
             str = removePunctuation(str)
@@ -29,28 +58,54 @@
                 const element = wordsAry[i];
                     if (element.length < 3) {wordsAry.splice(i,1)}
             }
-            //if wordsAry.length !== 0 ...then send word "what"
-            //make and trim string to send to api
-            let newStr = ""
-            for (let i = 0; i < wordsAry.length; i++) {
-                const element = wordsAry[i];
-                newStr = newStr + element + " "
-            }
-            newStr = newStr.trim()
-            if (newStr !== "") {
-                //return string
+
+            // let newStr = ""
+            // for (let i = 0; i < wordsAry.length; i++) {
+            //     const element = wordsAry[i];
+            //     newStr = newStr + element + " "
+            // }
+            // newStr = newStr.trim()
+            // if (newStr !== "") {
+            //     //return string
+            // }
+            // else {
+            //     //return array ["what", "you know what i mean"]
+            // }
+
+            if ((wordsAry.length) > 0) {
+                return wordsAry
             }
             else {
-                //return array ["what", "you know what i mean]
+                let altArray = ["what", "you know what i mean", "dont know", "funny"]
+                return altArray
             }
-            
-            // this is where you send the array or string to api to get the parts of speech.
-            
-            //get random number and random word
-            let rnd = Math.floor(Math.random() * wordsAry.length); 
-            // console.log(rnd)
-            return wordsAry[rnd]
         }
+        
+        
+        // return true or false if it is an appropriate key word
+        function getPos(str) {
+            var queryURL = "https://www.dictionaryapi.com/api/v3/references/sd4/json/" + str +"?key=ad5c6350-dd95-47d6-adbf-12ce92ca73ce";
+            let isGood = false
+            
+            $.ajax({
+                url: queryURL,
+                method: "GET"
+            }).then(function(response) {
+                console.log(response.length);
+                let len = response.length
+                for (let i = 0; i < response.length; i++) {
+                    const element = response[i].fl;
+                    console.log(element)
+                    if ((element === "verb") || (element === "noun") || (element === "adjective")) {
+                        isGood = true
+                        console.log(isGood)
+                    }
+                    
+                }
+            });
+            console.log("going to return" + isGood)
+            return isGood
+        };
         
         var punctuation = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~';
 
@@ -61,6 +116,14 @@
                 return punctuation.indexOf(letter) === -1;
                 })
                 .join('');
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array
         }
     </script>
 </body>
