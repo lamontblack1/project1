@@ -277,7 +277,7 @@ var firebaseConfig = {
         //  ...run the stop function.
         stop();
         //delete the chatroom since the other users time will be up about the same time
-        db.ref(Chatrooms/ + myThreadId).remove()
+        db.ref("Chatrooms/" + myThreadId).remove()
         //  Alert the user that time is up.
         location.reload()
       }
@@ -376,7 +376,7 @@ var firebaseConfig = {
         if ((ary.length) > 0) {
         let j = ary.length - 1
           const element = ary[j];
-        console.log("value in loop: " + letsUseThisWord)
+        console.log("value in loop number: " + j + "    "+ letsUseThisWord)
   
   
           var queryURL = "https://www.dictionaryapi.com/api/v3/references/sd4/json/" + element +"?key=ad5c6350-dd95-47d6-adbf-12ce92ca73ce";
@@ -412,24 +412,23 @@ var firebaseConfig = {
                 console.log("this is where it should be false to keep looping the nest")
                 ary.pop()
                 if (ary.length > 0){
-                  chooseKeyWordAndSendMessage(ary)
+                  chooseKeyWordAndSendMessage(ary,msg)
                 }
-              }
-  
-              if (((ary.length) === 0) && (letsUseThisWord === "")) {
-                   //if nothing was returned
+                else {
+                  //if nothing was returned
                   let altArray = ["what", "you know what i mean", "dont know", "funny"]
                   let rnd = Math.floor(Math.random() * altArray.length);
                   letsUseThisWord = altArray[rnd]
+                  console.log("random word chosen: " + letsUseThisWord)
+                }
               }
-              else {
   
-              }
               console.log("final log of word chosen: " + letsUseThisWord)
 
               letsUseThisWord = removePunctuation(letsUseThisWord)
 
-              let placeholder = Math.floor(Math.random() * 100) + 1
+              if (letsUseThisWord !== "") {
+                              let placeholder = Math.floor(Math.random() * 100) + 1
               var queryURL2 = "https://api.giphy.com/v1/gifs/search?api_key=dSe8JxZC5c32HRcUeWDIT7n5R8PYUmTF&q="+ 
                 letsUseThisWord +"&rating=g&limit=1&offset=" + (placeholder);
                 console.log("word sent to giphy " + letsUseThisWord)
@@ -461,6 +460,8 @@ var firebaseConfig = {
                       db.ref("/messages").push(newMessageObj)
                       letsUseThisWord = ""
                   });
+              }
+
 
 
       });
