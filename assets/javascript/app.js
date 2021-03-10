@@ -55,7 +55,7 @@ var firebaseConfig = {
                   startChatting = true
                   let newMessageObj = {
                     participantName: "Five-Minute Chat",
-                    message: "Start chatting!",
+                    message: "Start chatting! Enjoy with the random gifs that come with your message!",
                     messageTime: firebase.database.ServerValue.TIMESTAMP,
                     gifUrl: "./assets/dog.gif",
                     chatroomId: myThreadId,
@@ -63,10 +63,10 @@ var firebaseConfig = {
                   }
                   db.ref("/messages").push(newMessageObj)
                 }
-              if (!timerStarted) {
-                run()
-                timerStarted = true
-              }
+                if (!timerStarted) {
+                  run()
+                  timerStarted = true
+                }
             }
       } 
     });
@@ -256,9 +256,6 @@ var firebaseConfig = {
         });
     };
 
-
-    
-    
     
     //Timers **********************************************************************
 
@@ -279,7 +276,8 @@ var firebaseConfig = {
       if (secondsLeft === 0) {
         //  ...run the stop function.
         stop();
-
+        //delete the chatroom since the other users time will be up about the same time
+        db.ref(Chatrooms/ + myThreadId).remove()
         //  Alert the user that time is up.
         location.reload()
       }
@@ -361,33 +359,117 @@ var firebaseConfig = {
           keyWordArray = shuffleArray(keyWordArray)
           //FIX word API LATER, FOR TIME BEING, CHOOSE FIRST WORD OF SHUFFLED ARRAY
           // let wordToUse = chooseKeyWord(keyWordArray)
-          let wordToUse = keyWordArray[0]
-          console.log("word to use " + wordToUse)
+          chooseKeyWordAndSendMessage(keyWordArray,myMessage)
           //RESET MESSAGE INPUT
           $("#messageInput").val("")
 
           // call function which will do fetch, wait for response, then push message
-          getGifSendMessage(wordToUse,myMessage)
+          // getGifSendMessage(wordToUse,myMessage)
       }
   });
   
   //word api setup ***********************************************************
+  let letsUseThisWord = ""
 
-  function chooseKeyWord(ary) {
-    for (let i = 0; i < ary.length; i++) {
-        const element = ary[i];
-        let isKeyWord = getPos(element)
-        console.log("is the keyword good?  " + isKeyWord)
-        if (isKeyWord) {
-            console.log("should end here")
-            return element
-        }
+  function chooseKeyWordAndSendMessage(ary, msg) {
+    console.log(ary)
+        if ((ary.length) > 0) {
+        let j = ary.length - 1
+          const element = ary[j];
+        console.log("value in loop: " + letsUseThisWord)
+  
+  
+          var queryURL = "https://www.dictionaryapi.com/api/v3/references/sd4/json/" + element +"?key=ad5c6350-dd95-47d6-adbf-12ce92ca73ce";
+      
+      $.ajax({
+          url: queryURL,
+          method: "GET"
+      }).then(function(response) {
+          // console.log(element)
+          // console.log(response.length);
+          let oneOrTwo = 1
+          if (response.length > 1) {oneOrTwo = 2}
+        //check first one or two listings for part of speech for this word
+          for (let i = 0; i < oneOrTwo; i++) {
+            // console.log(response)
+            // console.log("headword: " + response[1].hwi.hw)
+              const posElement = response[i].fl;
+              console.log(response[i])
+              // console.log(posElement)
+              if ((posElement === "verb") || (posElement === "noun") || (posElement === "adjective")) {
+                  // console.log("this is a noun or verb or adj " + true)
+                  // console.log("value of letsUseThisword... " + letsUseThisWord)
+                  
+  
+                  if (letsUseThisWord === "") {
+                    letsUseThisWord = response[0].hwi.hw
+                    // console.log("letsUseThisWord was blank but should now be filled:    " + letsUseThisWord)
+                  }
+              }
+          }
+              
+              if (letsUseThisWord === "") {
+                console.log("this is where it should be false to keep looping the nest")
+                ary.pop()
+                if (ary.length > 0){
+                  chooseKeyWordAndSendMessage(ary)
+                }
+              }
+  
+              if (((ary.length) === 0) && (letsUseThisWord === "")) {
+                   //if nothing was returned
+                  let altArray = ["what", "you know what i mean", "dont know", "funny"]
+                  let rnd = Math.floor(Math.random() * altArray.length);
+                  letsUseThisWord = altArray[rnd]
+              }
+              else {
+  
+              }
+              console.log("final log of word chosen: " + letsUseThisWord)
+
+              letsUseThisWord = removePunctuation(letsUseThisWord)
+
+              let placeholder = Math.floor(Math.random() * 100) + 1
+              var queryURL2 = "https://api.giphy.com/v1/gifs/search?api_key=dSe8JxZC5c32HRcUeWDIT7n5R8PYUmTF&q="+ 
+                letsUseThisWord +"&rating=g&limit=1&offset=" + (placeholder);
+                console.log("word sent to giphy " + letsUseThisWord)
+              
+              $.ajax({
+                  url: queryURL2,
+                  method: "GET"
+              }).then(function(giphyResponse) {
+                    console.log(giphyResponse.data)
+                    
+                    let ary = giphyResponse.data
+                    console.log(ary.length)
+                  var strUrl
+                    if ((ary.length) === 0) {strUrl = ["./assets/dog.gif"]}
+                    else {
+                      const giphyElement = ary[0];
+                        strUrl = giphyElement.images.downsized_medium.url  
+                    }
+                        
+
+                        let newMessageObj = {
+                          participantName: myScreenName,
+                          message: msg,
+                          messageTime: firebase.database.ServerValue.TIMESTAMP,
+                          gifUrl: strUrl,
+                          chatroomId: myThreadId,
+                          searchWord: letsUseThisWord
+                        }
+                      db.ref("/messages").push(newMessageObj)
+                      letsUseThisWord = ""
+                  });
+
+
+      });
     }
-    //if nothing was returned
-    let altArray = ["what", "you know what i mean", "dont know", "funny"]
-    let rnd = Math.floor(Math.random() * altArray.length);
-    return altArray[rnd]
-}
+  }
+  
+  
+  
+
 
 function getKeyWordArray(str) {
     //clean string up and turn into an array
