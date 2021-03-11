@@ -56,7 +56,8 @@ var firebaseConfig = {
                   "Five-Minute Chat",
                   "",
                   "Start chatting! Enjoy with the random gifs that come with your message!",
-                  "./assets/dog.gif"
+                  "./assets/dog.gif",
+                  "(gif keyword)"
                 )
               
                   // let newMessageObj = {
@@ -78,13 +79,13 @@ var firebaseConfig = {
     });
 
     db.ref("/Chatrooms").on("child_added", function(snap) {
-      console.log("how many in this room: " + snap.val().participants)
+      // console.log("how many in this room: " + snap.val().participants)
       if (snap.val()) {
         // console.log("thread " + myThreadId)
         let intParticipants = parseInt(snap.val().participants);
         if (myThreadId === "") {
           // console.log(snap.key)
-          console.log("how many room part: " + intParticipants)
+          // console.log("how many room part: " + intParticipants)
           //If this "room" has only one participant then make this my room, ergo my thread id
           if (intParticipants === 1) {
             myThreadId = snap.key
@@ -247,11 +248,11 @@ var firebaseConfig = {
         url: queryURL,
         method: "GET"
     }).then(function(response) {
-          console.log(response)
-            console.log(response.data.length);
+          // console.log(response)
+            // console.log(response.data.length);
           let ary = response.data
               const element = ary[0];
-              console.log(ary[0])
+              // console.log(ary[0])
               let strUrl = element.images.downsized_medium.url  
 
               let newMessageObj = {
@@ -287,7 +288,8 @@ var firebaseConfig = {
         //  ...run the stop function.
         stop();
         //delete the chatroom since the other users time will be up about the same time
-        db.ref("Chatrooms/" + myThreadId).remove()
+        if (myThreadId !== "") {db.ref("Chatrooms/" + myThreadId).remove()}
+        
         //  Alert the user that time is up.
         location.reload()
       }
@@ -309,14 +311,15 @@ var firebaseConfig = {
         }
         db.ref("/messages").push(newMessageObj)
     };
+    
   //local Events ******************************************************
   $("#btnStart").on("click", function(event) {
-    console.log(myScreenName)
+    // console.log(myScreenName)
     if ((myScreenName === "") && (($("#nameInput").val()) !== "")) {
       myScreenName = $("#nameInput").val().trim()
       
-      console.log(myScreenName)
-      console.log("start button click thread id: " + myThreadId)
+      // console.log(myScreenName)
+      // console.log("start button click thread id: " + myThreadId)
       if (myThreadId === "") {
         let newChatRoomObj = {
           participants: 1,
@@ -326,7 +329,7 @@ var firebaseConfig = {
           participant2UserId: ""
         };
         myThreadId = db.ref().child("Chatrooms").push().key
-              console.log("new room started, key is: " + myThreadId)
+              // console.log("new room started, key is: " + myThreadId)
               var updates = {};
               updates['/Chatrooms/' + myThreadId] = newChatRoomObj;
               db.ref().update(updates)
@@ -394,11 +397,11 @@ var firebaseConfig = {
   let letsUseThisWord = ""
 
   function chooseKeyWordAndSendMessage(ary, msg) {
-    console.log(ary)
+    // console.log(ary)
         if ((ary.length) > 0) {
         let j = ary.length - 1
           const element = ary[j];
-        console.log("value in loop number: " + j + "    "+ letsUseThisWord)
+        // console.log("value in loop number: " + j + "    "+ letsUseThisWord)
   
   
           var queryURL = "https://www.dictionaryapi.com/api/v3/references/sd4/json/" + element +"?key=ad5c6350-dd95-47d6-adbf-12ce92ca73ce";
@@ -416,7 +419,7 @@ var firebaseConfig = {
             // console.log(response)
             // console.log("headword: " + response[1].hwi.hw)
               const posElement = response[i].fl;
-              console.log(response[i])
+              // console.log(response[i])
               // console.log(posElement)
               if ((posElement === "verb") || (posElement === "noun") || (posElement === "adjective")) {
                   // console.log("this is a noun or verb or adj " + true)
@@ -432,7 +435,7 @@ var firebaseConfig = {
           }
               
               if (letsUseThisWord === "") {
-                console.log("this is where it should be false to keep looping the nest")
+                // console.log("this is where it should be false to keep looping the nest")
                 ary.pop()
                 if (ary.length > 0){
                   chooseKeyWordAndSendMessage(ary,msg)
@@ -442,11 +445,11 @@ var firebaseConfig = {
                   let altArray = ["what", "you know what i mean", "dont know", "funny"]
                   let rnd = Math.floor(Math.random() * altArray.length);
                   letsUseThisWord = altArray[rnd]
-                  console.log("random word chosen: " + letsUseThisWord)
+                  // console.log("random word chosen: " + letsUseThisWord)
                 }
               }
   
-              console.log("final log of word chosen: " + letsUseThisWord)
+              // console.log("final log of word chosen: " + letsUseThisWord)
 
               letsUseThisWord = removePunctuation(letsUseThisWord)
 
@@ -454,16 +457,16 @@ var firebaseConfig = {
                               let placeholder = Math.floor(Math.random() * 100) + 1
               var queryURL2 = "https://api.giphy.com/v1/gifs/search?api_key=dSe8JxZC5c32HRcUeWDIT7n5R8PYUmTF&q="+ 
                 letsUseThisWord +"&rating=g&limit=1&offset=" + (placeholder);
-                console.log("word sent to giphy " + letsUseThisWord)
+                // console.log("word sent to giphy " + letsUseThisWord)
               
               $.ajax({
                   url: queryURL2,
                   method: "GET"
               }).then(function(giphyResponse) {
-                    console.log(giphyResponse.data)
+                    // console.log(giphyResponse.data)
                     
                     let ary = giphyResponse.data
-                    console.log(ary.length)
+                    // console.log(ary.length)
                   var strUrl
                     if ((ary.length) === 0) {strUrl = ["./assets/dog.gif"]}
                     else {
