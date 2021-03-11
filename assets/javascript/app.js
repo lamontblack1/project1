@@ -51,18 +51,24 @@ var firebaseConfig = {
                 let displayOtherParticipantTxt = "Your Five-Minute Chat buddy is " + otherParticipantName
                 // console.log(displayOtherParticipantTxt)
                 $("#chattersInfoLine").text(displayOtherParticipantTxt)
-                if (!startChatting) {
-                  startChatting = true
-                  let newMessageObj = {
-                    participantName: "Five-Minute Chat",
-                    message: "Start chatting! Enjoy with the random gifs that come with your message!",
-                    messageTime: firebase.database.ServerValue.TIMESTAMP,
-                    gifUrl: "./assets/dog.gif",
-                    chatroomId: myThreadId,
-                    searchWord: ""
-                  }
-                  db.ref("/messages").push(newMessageObj)
-                }
+
+                postTheirMessage(
+                  "Five-Minute Chat",
+                  "",
+                  "Start chatting! Enjoy with the random gifs that come with your message!",
+                  "./assets/dog.gif"
+                )
+              
+                  // let newMessageObj = {
+                  //   participantName: "Five-Minute Chat",
+                  //   message: "Start chatting! Enjoy with the random gifs that come with your message!",
+                  //   messageTime: firebase.database.ServerValue.TIMESTAMP,
+                  //   gifUrl: "./assets/dog.gif",
+                  //   chatroomId: myThreadId,
+                  //   searchWord: ""
+                  // }
+                  // db.ref("/messages").push(newMessageObj)
+              
                 if (!timerStarted) {
                   run()
                   timerStarted = true
@@ -72,7 +78,7 @@ var firebaseConfig = {
     });
 
     db.ref("/Chatrooms").on("child_added", function(snap) {
-      // console.log(snap.val())
+      console.log("how many in this room: " + snap.val().participants)
       if (snap.val()) {
         // console.log("thread " + myThreadId)
         let intParticipants = parseInt(snap.val().participants);
@@ -138,8 +144,9 @@ var firebaseConfig = {
             let strMessage = snap.val().message
             let strUrl = snap.val().gifUrl
             let dateVal = snap.val().messageTime
-            let msgTimeStamp = moment(dateVal).format("hh:mma")
+            let msgTimeStamp = moment(dateVal).format("h:mma")
             let strTopic = snap.val().searchWord
+
              //slice message so you can isolate word used for gif
              let strMessageToDisplay = strMessage
              if (strTopic !== "") {
@@ -151,58 +158,61 @@ var firebaseConfig = {
                 }
              }
 
-
             //if it is my message, put on right, their message, put on left
-            if (strSenderName == myScreenName) {
-              $("#messagesBox").prepend(
-                "<div class='row mt-3'><div class='col-5'></div>" +
-                "<div class='col-7'>" +
-                    "<div class='card my-message-card'>" +
-                        "<div class='row no-gutters'>" +
-                            "<div class='col-md-3'>" +
-                            "<img src='" + strUrl + "' alt=''>" +
-                            "</div>" +
-                                "<div class='col-md-9'>" +
-                                    "<div class='card-body p-2'>" +
-                                        "<p class='card-title m-0'>" + strSenderName + "  <small class='text-muted'>" + msgTimeStamp + "</small></p>" +
-                                        "<p class='card-text'>" + strMessageToDisplay + "</p>" +
-                                        "</div>" +
-                                "</div>" +
-                            "</div>" +
-                        "</div>" +
-                    "</div>" +
-                "</div>"
-              )
-            }
-            else {
-              $("#messagesBox").prepend(
+            if (strSenderName == myScreenName) { postMyMessage(strSenderName, msgTimeStamp, strMessage, strUrl, strTopic) }
+            else { postTheirMessage(strSenderName, msgTimeStamp, strMessage, strUrl, strTopic) };
+
+          }
+      }
+    });
+    // db.ref("/Chatrooms/"+ myThreadId + "/messages").on("child_added", function(snap) {
+    //   console.log(snap.val())  
+    // });
+
+  function postMyMessage(sender, timeSent, msg, gifUrl, topicWord) {
+        $("#messagesBox").prepend(
+                  "<div class='row mt-3'><div class='col-5'></div>" +
+                  "<div class='col-7'>" +
+                      "<div class='card my-message-card'>" +
+                          "<div class='row no-gutters'>" +
+                              "<div class='col-md-3'>" +
+                              "<img src='" + gifUrl + "' alt=''>" +
+                              "</div>" +
+                                  "<div class='col-md-9'>" +
+                                      "<div class='card-body p-2'>" +
+                                          "<p class='card-title m-0'>" + sender + "  <small class='text-muted'>" + timeSent + "</small><span class='topic-word'>&#8220" + topicWord + "&#8221</span></p>" +
+                                          "<p class='card-text'>" + msg + "</p>" +
+                                          "</div>" +
+                                  "</div>" +
+                              "</div>" +
+                          "</div>" +
+                      "</div>" +
+                  "</div>"
+                )
+  };
+
+  function postTheirMessage(sender, timeSent, msg, gifUrl, topicWord) {
+    $("#messagesBox").prepend(
                 "<div class='row mt-3'>" +
                     "<div class='col-7'>" +
                         "<div class='card their-message-card'>" +
                             "<div class='row no-gutters'>" +
                                 "<div class='col-md-9'>" +
                                     "<div class='card-body p-2'>" +
-                                        "<p class='card-title m-0'>" + strSenderName + "  <small class='text-muted'>" + msgTimeStamp + "</small></p>" +
-                                        "<p class='card-text'>" + strMessageToDisplay + "</p>" +
+                                        "<p class='card-title m-0'>" + sender + "  <small class='text-muted'>" + timeSent + "</small><span class='topic-word'>&#8220" + topicWord + "&#8221</span></p>" +
+                                        "<p class='card-text'>" + msg + "</p>" +
                                     "</div>" +
                                 "</div>" +
                                 "<div class='col-md-3'>" +
-                                    "<img src='" + strUrl + "' alt=''>" +
+                                    "<img src='" + gifUrl + "' alt=''>" +
                                 "</div>" +
                             "</div>" +
                         "</div>" +
                     "</div>" +
                     "<div class='col-5'></div>" +
                 "</div>"
-              )            
-            }
-
-          }
-      }
-    });
-    // db.ref("/Chatrooms/"+ myThreadId + "/messages").on("child_added", function(snap) {
-    //   console.log(snap.val())
-    // });
+              )           
+  }
 
     connectedParticipants.on("value", function(snap) {
       // If they are connected..
@@ -287,6 +297,18 @@ var firebaseConfig = {
       clearInterval(intervalId);
     }
     
+    window.onbeforeunload = function(event) {
+      db.ref("Chatrooms/" + myThreadId).remove()
+       let newMessageObj = {
+          participantName: "Five-Minute Chat",
+          message: otherParticipantName + " has logged off. Hit Refresh to start again!",
+          messageTime: firebase.database.ServerValue.TIMESTAMP,
+          gifUrl: "./assets/dog.gif",
+          chatroomId: myThreadId,
+          searchWord: ""
+        }
+        db.ref("/messages").push(newMessageObj)
+    };
   //local Events ******************************************************
   $("#btnStart").on("click", function(event) {
     console.log(myScreenName)
@@ -404,7 +426,8 @@ var firebaseConfig = {
                   if (letsUseThisWord === "") {
                     letsUseThisWord = response[0].hwi.hw
                     // console.log("letsUseThisWord was blank but should now be filled:    " + letsUseThisWord)
-                  }
+                }
+                
               }
           }
               
@@ -468,10 +491,6 @@ var firebaseConfig = {
     }
   }
   
-  
-  
-
-
 function getKeyWordArray(str) {
     //clean string up and turn into an array
     str = str.toLowerCase()
@@ -492,32 +511,6 @@ function getKeyWordArray(str) {
         return altArray
     }
 }
-
-
-// return true or false if it is an appropriate key word
-function getPos(str) {
-    var queryURL = "https://www.dictionaryapi.com/api/v3/references/sd4/json/" + str +"?key=ad5c6350-dd95-47d6-adbf-12ce92ca73ce";
-    let isGood = false
-    
-    $.ajax({
-        url: queryURL,
-        method: "GET"
-    }).then(function(response) {
-        console.log(response.length);
-        let len = response.length
-        for (let i = 0; i < response.length; i++) {
-            const element = response[i].fl;
-            console.log(element)
-            if ((element === "verb") || (element === "noun") || (element === "adjective")) {
-                isGood = true
-                console.log(isGood)
-            }
-            
-        }
-    });
-    console.log("going to return" + isGood)
-    return isGood
-};
 
 var punctuation = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~';
 
