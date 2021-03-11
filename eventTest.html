@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- Firebase Core JavaScript Link -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.9/firebase-app.js"></script>
+    <!-- Specific Firebase products we want (Database) -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.9/firebase-database.js"></script>
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <script>
+        var firebaseConfig = {
+    apiKey: "AIzaSyB1TrIIy62YBgWnmc3roTo8L2IldcUmHBM",
+    authDomain: "fiveminutechat-694e9.firebaseapp.com",
+    databaseURL: "https://fiveminutechat-694e9-default-rtdb.firebaseio.com",
+    projectId: "fiveminutechat-694e9",
+    storageBucket: "fiveminutechat-694e9.appspot.com",
+    messagingSenderId: "689324897813",
+    appId: "1:689324897813:web:a89e80e2244489d409c01c"
+  };
+  // Initialize Firebas
+//   firebase.initializeApp(firebaseConfig);
+//  // assign variable to reference the database
+//   let db = firebase.database();
+
+//   db.ref("/Chatrooms").on("child_added", function(snap,snapKey) {
+//       console.log("child added")
+//       console.log(snap.val())
+          
+//       });
+
+//       db.ref("/Chatrooms").on("value", function(snap,snapKey) {
+//         console.log("value")
+//       console.log(snap.val())
+//       });
+
+//       db.ref("/Chatrooms").on("child_changed", function(snap,) {
+//         console.log("child changed")
+//       console.log(snap.val())
+//       });
+
+      // db.ref("/Chatrooms/-MVImeXbhiualCC2m5c_").remove()
+let wordArray = ["the", "when", "to", "cat", "tomorrow", "today", "fun", "to"]
+//make sure the array has a length before passing it
+let letsUseThisWord = ""
+
+function chooseKeyWordAndSendMessage(ary) {
+  console.log(ary)
+      if ((ary.length) > 0) {
+      let j = ary.length - 1
+        const element = ary[j];
+      console.log("value in loop: " + letsUseThisWord)
+
+
+        var queryURL = "https://www.dictionaryapi.com/api/v3/references/sd4/json/" + element +"?key=ad5c6350-dd95-47d6-adbf-12ce92ca73ce";
+    
+    $.ajax({
+        url: queryURL,
+        method: "GET"
+    }).then(function(response) {
+        console.log(element)
+        console.log(response.length);
+        let oneOrTwo = 1
+        if (response.length > 1) {oneOrTwo = 2}
+      //check first one or two listings for part of speech for this word
+        for (let i = 0; i < oneOrTwo; i++) {
+          console.log(response)
+          console.log("headword: " + response[1].hwi.hw)
+            const posElement = response[i].fl;
+            console.log(posElement)
+            if ((posElement === "verb") || (posElement === "noun") || (posElement === "adjective")) {
+                console.log("this is a noun or verb or adj " + true)
+                console.log("value of letsUseThisword... " + letsUseThisWord)
+                
+
+                if (letsUseThisWord === "") {
+                  letsUseThisWord = response[1].hwi.hw
+                  console.log("letsUseThisWord was blank but should now be filled:    " + letsUseThisWord)
+                }
+            }
+        }
+            
+            if (letsUseThisWord === "") {
+              console.log("this is where it should be false to keep looping the nest")
+              ary.pop()
+              if (ary.length > 0){
+                chooseKeyWord(ary)
+              }
+            }
+
+            if (((ary.length) === 0) && (letsUseThisWord === "")) {
+                 //if nothing was returned
+                let altArray = ["what", "you know what i mean", "dont know", "funny"]
+                let rnd = Math.floor(Math.random() * altArray.length);
+                letsUseThisWord = altArray[rnd]
+            }
+            else {
+
+            }
+            console.log("final log: " + letsUseThisWord)
+    });
+  }
+}
+
+
+
+
+  function getPos(str) {
+    var queryURL = "https://www.dictionaryapi.com/api/v3/references/sd4/json/" + str +"?key=ad5c6350-dd95-47d6-adbf-12ce92ca73ce";
+    let isGood = false
+    
+    $.ajax({
+        url: queryURL,
+        method: "GET"
+    }).then(function(response) {
+        console.log(response.length);
+        let len = response.length
+        for (let i = 0; i < response.length; i++) {
+            const element = response[i].fl;
+            console.log(element)
+            if ((element === "verb") || (element === "noun") || (element === "adjective")) {
+                isGood = true
+                console.log("this is a noun or verb or adj " + isGood)
+            }
+            
+        }
+    });
+    console.log("going to return" + isGood)
+    return isGood
+};
+
+
+
+
+
+
+
+
+
+
+
+
+    </script>
+</body>
+</html>
